@@ -29,7 +29,7 @@ def setup_notify_latest(bot):
             if video["is_live"]:
                 message = f'🔴 **ライブ配信が始まりました！**\n開始時刻: <t:{video["published_unix"]}:F>\n{video["url"]}'
             else:
-                message = f'📺 **新しい動画が投稿されました！**\n{video["title"]}\n{video["url"]}'
+                message = f'\n{video["title"]}\n{video["url"]}'
 
             await channel.send(message)
 
