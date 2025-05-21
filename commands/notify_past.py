@@ -14,8 +14,12 @@ def setup_notify_past(bot):
 
         await interaction.response.send_message("過去動画の通知を送信中です...", ephemeral=True)
 
-        with open("config.json", "r") as f:
-            config = json.load(f)
+        try:
+            with open("config.json", "r") as f:
+                config = json.load(f)
+        except FileNotFoundError:
+            await interaction.edit_original_response(content="config.json が見つかりません。")
+            return
 
         for guild_id, data in config.items():
             channel = bot.get_channel(data["channel_id"])
@@ -24,16 +28,13 @@ def setup_notify_past(bot):
 
             videos = fetch_past_videos(data["youtube_channel_id"])
 
-            # 古い順に送信
-            for v in reversed(videos):
+            # 重複なし & 古い順にする
+            unique_videos = list(dict.fromkeys(videos))  # preserve order
+            unique_videos.reverse()  # 古い順にする
+
+            for v in unique_videos:
                 await channel.send(v)
 
-        # ここが正しくインデントされていなかった → 修正済み
         await interaction.edit_original_response(content="過去動画の通知を送信しました！")
-
-    # 既存コマンドがある場合は削除（重複防止）
-    existing = bot.tree.get_command("notify_past")
-    if existing:
-        bot.tree.remove_command("notify_past")
 
     bot.tree.add_command(notify_past)
