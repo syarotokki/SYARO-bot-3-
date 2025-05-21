@@ -1,21 +1,41 @@
-import os
 import requests
+import os
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY")
+YOUTUBE_API_KEY = os.environ["YOUTUBE_API_KEY"]
 
-def fetch_latest_video(channel_id):
-    url = f"https://www.googleapis.com/youtube/v3/search?key={YOUTUBE_API_KEY}&channelId={channel_id}&order=date&part=snippet&type=video&maxResults=1"
-    res = requests.get(url).json()
-    if "items" in res and len(res["items"]) > 0:
-        video_id = res["items"][0]["id"]["videoId"]
-        return f"https://www.youtube.com/watch?v={video_id}"
-    return None
-
-def fetch_past_videos(channel_id, max_results=5):
-    url = f"https://www.googleapis.com/youtube/v3/search?key={YOUTUBE_API_KEY}&channelId={channel_id}&order=date&part=snippet&type=video&maxResults={max_results}"
-    res = requests.get(url).json()
+def fetch_past_videos(channel_id, max_results=500):
+    base_url = "https://www.googleapis.com/youtube/v3/search"
     videos = []
-    for item in res.get("items", []):
-        video_id = item["id"]["videoId"]
-        videos.append(f"https://www.youtube.com/watch?v={video_id}")
+    page_token = None
+    total_fetched = 0
+
+    while True:
+        params = {
+            "part": "snippet",
+            "channelId": channel_id,
+            "maxResults": 50,
+            "order": "date",
+            "type": "video",
+            "key": YOUTUBE_API_KEY
+        }
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = requests.get(base_url, params=params)
+        if response.status_code != 200:
+            break
+
+        data = response.json()
+        for item in data.get("items", []):
+            video_id = item["id"]["videoId"]
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+            videos.append(video_url)
+            total_fetched += 1
+            if total_fetched >= max_results:
+                return videos
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
     return videos
