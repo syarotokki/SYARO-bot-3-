@@ -23,7 +23,7 @@ def setup_notify_past(bot):
             if not videos:
                 continue
             # 古い順に並び替えてから送信
-            for v in reversed(videos):
+            for v in videos:
                 await channel.send(v)
 
         await interaction.edit_original_response(content="過去動画の通知を送信しました！")
