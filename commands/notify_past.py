@@ -12,15 +12,28 @@ def setup_notify_past(bot):
             await interaction.response.send_message("このコマンドは開発者のみ使用できます。", ephemeral=True)
             return
 
-        with open("config.json", "r") as f:
-            config = json.load(f)
+        await interaction.response.send_message("過去動画を通知中...", ephemeral=True)
+
+        try:
+            with open("config.json", "r") as f:
+                config = json.load(f)
+        except FileNotFoundError:
+            await interaction.edit_original_response(content="config.json が存在しません。")
+            return
+
+        sent_urls = set()  # 重複防止用
 
         for guild_id, data in config.items():
             channel = bot.get_channel(data["channel_id"])
+            if not channel:
+                continue
+
             videos = fetch_past_videos(data["youtube_channel_id"])
             for v in videos:
-                await channel.send(v)
+                if v not in sent_urls:
+                    await channel.send(v)
+                    sent_urls.add(v)
 
-        await interaction.response.send_message("過去動画の通知を送信しました！", ephemeral=True)
+        await interaction.edit_original_response(content="過去動画の通知を送信しました！")
 
     bot.tree.add_command(notify_past)
