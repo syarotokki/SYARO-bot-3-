@@ -1,7 +1,7 @@
 from discord.ext import commands, tasks
 import discord
 import json
-from utils.youtube import fetch_latest_video  # ← URLだけでなく video_id など含む dict を返す関数
+from utils.youtube import fetch_latest_video
 from commands.subscribe import setup_subscribe
 from commands.notify_past import setup_notify_past
 from commands.notify_latest import setup_notify_latest
@@ -54,12 +54,7 @@ async def check_new_videos():
         with open("notified.json", "w") as f:
             json.dump(notified, f, indent=4)
 
-# スラッシュコマンド登録
-setup_subscribe(bot)
-setup_notify_past(bot)
-setup_notify_latest(bot)
-
-
+# スラッシュコマンド登録（← 一度だけでOK）
 setup_subscribe(bot)
 setup_notify_past(bot)
 setup_notify_latest(bot)
